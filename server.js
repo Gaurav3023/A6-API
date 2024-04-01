@@ -7,17 +7,19 @@ const passportJWT = require('passport-jwt');
 const JWTStrategy = passportJWT.Strategy;
 const ExtractJWT = passportJWT.ExtractJwt;
 const jwt = require('jsonwebtoken');
-dotenv.config();
 const userService = require("./user-service.js");
+
+dotenv.config();
 
 const HTTP_PORT = process.env.PORT || 8080;
 
 app.use(express.json());
 app.use(cors());
 
+// Passport setup
 const jwtOptions = {
     jwtFromRequest: ExtractJWT.fromAuthHeaderAsBearerToken(),
-    secretOrKey: process.env.JWT_SECRET
+    secretOrKey: process.env.JWT_SECRET  // Ensure JWT_SECRET is accessed from process.env
 };
 
 const strategy = new JWTStrategy(jwtOptions, (jwt_payload, next) => {
@@ -27,6 +29,7 @@ const strategy = new JWTStrategy(jwtOptions, (jwt_payload, next) => {
 passport.use(strategy);
 app.use(passport.initialize());
 
+// Route handlers
 app.post("/api/user/register", (req, res) => {
     userService.registerUser(req.body)
         .then((msg) => {
@@ -101,6 +104,7 @@ app.delete("/api/user/history/:id", passport.authenticate('jwt', { session: fals
         })
 });
 
+// Start the server
 userService.connect()
     .then(() => {
         app.listen(HTTP_PORT, () => { console.log("API listening on: " + HTTP_PORT) });
